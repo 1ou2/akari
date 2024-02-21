@@ -1,25 +1,14 @@
-from AkariPuzzle import AkariPuzzle
-from AkariFile import AkariFile
-from AkariSolver import AkariSolver
+from akari.akariPuzzle import AkariPuzzle
+from akari.cell import Cell
+from akari.akariFile import AkariFile
+from akari.akariSolver import AkariSolver
 
-puzzle = AkariFile("easy-8-01.txt").get_puzzle()
 
+#puzzle = AkariFile("puzzles/easy-8-01.txt").get_puzzle()
+puzzle = AkariFile("puzzles/easy-6-02.txt").get_puzzle()
 puzzle.print()
 solver = AkariSolver(puzzle)
 
 solver.solve()
 
 solver.p.print()
-"""
-puzzle = AkariPuzzle(5,6)
-print(puzzle.board)
-
-
-puzzle.add_box(2, 1, 4)
-puzzle.add_box(3, 3)
-puzzle.add_candle(0,3)
-puzzle.add_candle(1,0)
-
-puzzle.print()
-
-"""
