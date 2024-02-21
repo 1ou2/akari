@@ -27,11 +27,6 @@ class AkariPuzzle:
     def set_candle(self,row,col):
         self.cells[Cell.get_id(row,col)].val = Cell.CANDLE
 
-    def get_range(self,row,col):
-        """ Returns all cells that are reachable from this cell 
-        """
-        cell_range = []
-
     def get_reachable_cells(self,cell:Cell)->list[Cell]:
         """ Return a list of all reachable cells, from a given cell
          search cells in all directions : Up, down, right, left """
@@ -57,11 +52,10 @@ class AkariPuzzle:
 
     def get_adjacent_cells(self,cell:Cell)->list[Cell]:
         """ Return a list of all adjacents cells, from a cell Up, down, right, left 
-        when cell is on a border can return less than 4 adjecent cells"""
+        when cell is on a border can return less than 4 adjacent cells"""
         adj = []
         directions = [(1, 0), (-1, 0), (0, 1), (0, -1)]  # Up, down, right, left
         for dr, dc in directions:
-
             new_row, new_col = cell.row + dr, cell.col + dc
             if 0 <= new_row < self.size_row and 0 <= new_col < self.size_col:
                 adj.append(self.get_cell(new_row,new_col))

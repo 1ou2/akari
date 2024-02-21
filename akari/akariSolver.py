@@ -97,7 +97,91 @@ class AkariSolver:
         return self.p.is_solved()
     
     def advanced_solving(self):
-        pass
+        lastprogress = 0
+        # store all cells related to a hint
+        # cells_hints[cell.id] = [cell1, cell2, cell3]
+        # cell1, cell2, cell3 are the cells around the hint cell.
+        #
+        # cell_hint { "id": cell.id, "cell": cell,"adjacents": [cell1, cell2, cell3],  "value": cell.val, "is_solved": False, "candles": [cell1, cell2, cell3],"candidates":[cell1,cell3]}
+        #
+        # hints = { cell.id : cell_hint }
+        #
+        hints = {}
+        for cell in self.p.iter_cells():
+            if cell.has_hint():
+                cell_hint = {}
+                cell_hint["id"] = cell.id
+                cell_hint["cell"] = cell
+                cell_hint["adjacents"] = self.p.get_adjacent_cells(cell)
+                cell_hint["value"] = cell.val
+                cell_hint["is_solved"] = False
+                cell_hint["candles"] = []
+                cell_hint["candidates"] = []
+                for c in cell_hint["adjacents"]:
+                    if c.is_candle():
+                        cell_hint["candles"].append(c)
+                    if c.is_empty():
+                        cell_hint["candidates"].append(c)
+                if len(cell_hint["candles"]) == cell_hint["value"]:
+                    cell_hint["is_solved"] = True
+                hints[cell.id] = cell_hint
+                
+        while self.progress > lastprogress:
+            lastprogress = self.progress
+            for hint in hints.values():
+                # For each hint that is not solved, and that has at least 2 missing candles around it
+                # Select, 2 adjacents cells as candidates for being a candle
+                # check if another hint cannot be solved with these candles
+                # if not, we know that this pair of candles is not possible
+                if hint["is_solved"] == False and len(hint["candidates"]) == 3:
+                    inconsistency = False
+                    for c1 in hint["candidates"]:
+                        for c2 in hint["candidates"]:
+                            if c1 != c2:
+                                # here are the cells that would be reachable by the 2 candidates
+                                reachable1 = self.p.get_reachable_cells(c1)
+                                reachable2 = self.p.get_reachable_cells(c2)
+
+                                # merge the two list
+                                reachable = reachable1 + reachable2
+                                # remove duplicates
+                                reachable = list(set(reachable))
+
+                                # check if there is another hint that cannot be solved because of these candles
+                                # to do so, check if all adjcent cells of the hint are in the list of reachable cells
+                                
+                                for h in hints.values():
+                                    if h["is_solved"] == False and h["id"] != hint["id"]:
+                                        solvable = False
+                                        for c in h["adjacents"]:
+                                            if c not in reachable:
+                                                # this hint cannot be solved because of these candles
+                                                # we can stop here
+                                                solvable = True
+                                                break
+                                        if solvable == False:
+                                            inconsistency = True
+                                            break
+                            
+
+                                # We found an inconsistency, it means that both c1 and c2 cannot be candles
+                                # As we have 3 candidates, we can deduce that the third candidate is a candle
+                                if inconsistency == True:
+                                    for c3 in hint["candidates"]:
+                                        if c3 != c1 and c3 != c2:
+                                            self.p.add_candle(c3)
+                                            self.add_progress()
+                                            break
+                                    break
+                        if inconsistency == True:
+                            break
+                        
+                                    
+
+                                    
+
+                                
+
 
     def solve(self):
         easy = self.direct_solving()
