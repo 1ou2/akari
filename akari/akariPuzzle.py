@@ -26,6 +26,12 @@ class AkariPuzzle:
 
     def set_candle(self,row,col):
         self.cells[Cell.get_id(row,col)].val = Cell.CANDLE
+    
+    def add_non_candle(self,cell:Cell)->bool:
+        if cell.is_empty() and cell.non_candle == False:
+            cell.non_candle = True
+            return True
+        return False
 
     def get_reachable_cells(self,cell:Cell)->list[Cell]:
         """ Return a list of all reachable cells, from a given cell
@@ -67,6 +73,54 @@ class AkariPuzzle:
 
     def get_cell(self,row,col)->Cell:
         return self.cells[Cell.get_id(row,col)]
+    
+    def get_left_cell(self, cell:Cell)->Cell:
+        """ Return the cell to the left of the given cell """
+        if cell.col == 0:
+            return None  # leftmost column, no cell to the left
+        return self.get_cell(cell.row, cell.col - 1)
+    
+    def get_right_cell(self, cell:Cell)->Cell:
+        """ Return the cell to the right of the given cell """
+        if cell.col == self.size_col - 1:
+            return None  # rightmost column, no cell to the right
+        return self.get_cell(cell.row, cell.col + 1)
+
+    def get_top_cell(self, cell:Cell)->Cell:
+        """ Return the cell above the given cell """
+        if cell.row == 0:
+            return None  # topmost row, no cell above
+        return self.get_cell(cell.row - 1, cell.col)
+    
+    def get_bottom_cell(self, cell:Cell)->Cell:
+        """ Return the cell below the given cell """
+        if cell.row == self.size_row - 1:
+            return None  # bottommost row, no cell below
+        return self.get_cell(cell.row + 1, cell.col)
+    
+    def get_right_top_cell(self, cell:Cell)->Cell:
+        """ Return the cell to the right and above the given cell """
+        if cell.row == 0 or cell.col == self.size_col - 1:
+            return None  # topmost or rightmost row, no cell to the right or above
+        return self.get_cell(cell.row - 1, cell.col + 1)
+    
+    def get_right_bottom_cell(self, cell:Cell)->Cell:
+        """ Return the cell to the right and below the given cell """
+        if cell.row == self.size_row - 1 or cell.col == self.size_col - 1:
+            return None  # bottommost or rightmost row, no cell to the right or below
+        return self.get_cell(cell.row + 1, cell.col + 1)
+    
+    def get_left_top_cell(self, cell:Cell)->Cell:
+        """ Return the cell to the left and above the given cell """
+        if cell.row == 0 or cell.col == 0:
+            return None  # topmost or leftmost row, no cell to the left or above
+        return self.get_cell(cell.row - 1, cell.col - 1)
+    
+    def get_left_bottom_cell(self, cell:Cell)->Cell:
+        """ Return the cell to the left and below the given cell """
+        if cell.row == self.size_row - 1 or cell.col == 0:
+            return None  # bottommost or leftmost row, no cell to the left or below
+        return self.get_cell(cell.row + 1, cell.col - 1)
 
     def is_box(self,row,col):
         """ Returns true if the cell at coordinates row/col is a box """

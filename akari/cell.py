@@ -32,3 +32,6 @@ class Cell:
     
     def has_hint(self):
         return isinstance(self.val,int)
+    
+    def set_non_candle(self):
+        self.non_candle = True
