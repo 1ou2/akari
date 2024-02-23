@@ -15,23 +15,30 @@ class AkariPuzzle:
             for c in range(self.size_col):
                 cell = Cell(r,c,Cell.EMPTY)
                 self.cells[cell.id] =  cell
-        
-        # positions where there cannot be a candle
-        # list of coordinates e.g. [(1,2),(2,2)]
-        self.non_candle = []
 
     def add_cell(self,r,c,v):
         cell = Cell(r,c,v)
         self.cells[cell.id] = cell
 
     def set_candle(self,row,col):
+        if self.cells[Cell.get_id(row, col)].non_candle == True:
+            raise ValueError("set_candle: Cell is non candle") 
         self.cells[Cell.get_id(row,col)].val = Cell.CANDLE
     
     def add_non_candle(self,cell:Cell)->bool:
         if cell.is_empty() and cell.non_candle == False:
             cell.non_candle = True
             return True
-        return False
+        else:
+            raise ValueError("add_non_candle: Cell is not empty or already non candle")
+        
+
+    # return a copy of the current state of the puzzle
+    def copy(self):
+        puzzle = AkariPuzzle(self.size_row, self.size_col)
+        for cell in self.cells.values():
+            puzzle.add_cell(cell.row, cell.col, cell.val)
+        return puzzle
 
     def get_reachable_cells(self,cell:Cell)->list[Cell]:
         """ Return a list of all reachable cells, from a given cell
@@ -179,6 +186,59 @@ class AkariPuzzle:
             
             self.get_cell(row, col).val = label
             
+    # check puzzle state. There must be no candles that are facing each other
+    def check_puzzle(self):
+        # dict associating a row with a list of candles in that row
+        candles_by_row = {}
+        # dict associating a column with a list of candles in that column
+        candles_by_col = {}
+        for cell in self.cells.values():
+            if cell.val == Cell.CANDLE:
+                row = cell.row
+                col = cell.col
+                if row not in candles_by_row:
+                    candles_by_row[row] = []
+                    # add the candle to the list of candles in the row
+                    candles_by_row[row].append(cell)
+                else:
+                    # add the candle to the list of candles in the row
+                    candles_by_row[row].append(cell)
+                if col not in candles_by_col:
+                    candles_by_col[col] = []
+                    # add the candle to the list of candles in the column
+                    candles_by_col[col].append(cell)
+                else:
+                    candles_by_col[col].append(cell)
+        
+        # check candles in each row
+        for row in candles_by_row:
+            cols = sorted([c.col for c in candles_by_row[row]])
+            # for each pair of candles in the row, check if there are only empty or illuminated cells between them
+            for col1, col2 in zip(cols, cols[1:]):
+                # check that col1 and col2 are not adjacent
+                if col1 + 1 == col2:
+                    return False
+                for col in range(col1 + 1, col2):
+                    cell = self.get_cell(row, col)
+                    # it means that two candles are facing each other, so the puzzle is not solvable
+                    if cell.val != Cell.EMPTY and cell.val != Cell.ILLUMINATED:
+                        return False
+        
+        # check candles in each column
+        for col in candles_by_col:
+            rows = sorted([c.row for c in candles_by_col[col]])
+            # for each pair of candles in the column, check if there are only empty or illuminated cells between them
+            for row1, row2 in zip(rows, rows[1:]):
+                # check that row1 and row2 are not adjacent
+                if row1 + 1 == row2:
+                    return False
+                for row in range(row1 + 1, row2):
+                    cell = self.get_cell(row, col)
+                    # it means that two candles are facing each other, so the puzzle is not solvable
+                    if cell.val != Cell.EMPTY and cell.val != Cell.ILLUMINATED:
+                        return False
+        
+        return True
 
     def print(self):
         print()
