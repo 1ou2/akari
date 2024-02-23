@@ -303,6 +303,30 @@ class AkariSolver:
                 return True         
         return False
     
+    # try solving, by using a chain. Try placing a candle, check if it triggers the placement other candles, until no other 
+    # candles can be placed. Check if this can be a valid board.
+    def rule_chain(self):
+        # copy state in order to be able to restore, if this hypothesis is wrong
+        saved_puzzle= self.p.copy()
+
+        # we try to place a candle, and check if it triggers the placement of other candles
+        # if a ValueError is raised, it means that this hypothesis is wrong, and we restore the state
+        try:
+            for cell in self.p.iter_cells():
+                if cell.is_empty():
+                    self.p.add_candle(cell)
+                    if not self.p.check_puzzle():
+                        raise ValueError
+        
+        # we can eliminate this cell, it cannot be a candle
+        except ValueError:
+            self.p = saved_puzzle
+            return False
+        
+
+        self.p = saved_puzzle                
+        return True
+
     def advanced_solving(self)->bool:
         lastprogress = 0
         while self.progress > lastprogress:
@@ -325,10 +349,12 @@ class AkariSolver:
     def solve(self):
         easy = self.direct_solving()
         if easy:
-            print("EASY")
+            return("EASY")
         else:
-            self.advanced_solving()
-            print("HARD")
+            if self.advanced_solving():
+                return("HARD")
+        return("IMPOSSIBLE")
+
           
 
     
