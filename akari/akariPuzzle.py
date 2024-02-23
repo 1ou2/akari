@@ -196,7 +196,15 @@ class AkariPuzzle:
         for row in range(self.size_row):
             print(str(row) + '| ',end='')
             for col in range(self.size_col):
-                print(self.get_cell(row, col).val,end=' ')       
+                # print cell value, 
+                val = self.get_cell(row, col).val
+                if val == Cell.EMPTY and self.get_cell(row,col).non_candle == True:
+                    print('x', end=' ')
+                elif val == Cell.BOX:
+                    print("■", end=' ')
+                else:
+                    print(self.get_cell(row, col).val, end=' ')
+                #print(self.get_cell(row, col).val,end=' ')       
             print()
 
 

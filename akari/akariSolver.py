@@ -58,6 +58,7 @@ class AkariSolver:
         return cell_hint
 
     # set non candle marks
+    # returns True if a change was made and a cell has been marked as NOT being a candle
     def rule_non_candle(self)->bool:
         has_changed = False
         for cell in self.p.iter_cells():
@@ -84,7 +85,6 @@ class AkariSolver:
                 
             # cells with value 2, and with an adjacent cell blocked, cannot have a candle in the opposite diagonal
             if cell.val == 2:
-                
                 if len(cell_hint["candles"]) == 0 and len(cell_hint["candidates"]) == 3:
                     left_cell = self.p.get_left_cell(cell)
                     right_cell = self.p.get_right_cell(cell)
@@ -130,6 +130,26 @@ class AkariSolver:
                         if right_top and right_top.non_candle == False:
                             right_top.set_non_candle()
                             has_changed = True
+        
+        
+            # cells with value 1, and with an adjacent cell blocked, cannot have a candle in the opposite diagonal
+            if cell.val == 1 and len(cell_hint["candidates"]) == 2:
+                # check that candidates are not in the row and not in the same column
+                non_candle_row = []
+                non_candle_col = []
+                for candidate in cell_hint["candidates"]:
+                    if candidate.row == cell.row:
+                        non_candle_col.append(candidate.col)
+                    # check if candidate is in the same column
+                    if candidate.col == cell.col:
+                        non_candle_row.append(candidate.row)
+
+                if len(non_candle_row) == 1 and len(non_candle_col) == 1:
+                    diag_cell = self.p.get_cell(non_candle_row[0], non_candle_col[0])
+                    if diag_cell.non_candle == False:
+                        diag_cell.set_non_candle()
+                        has_changed = True
+                           
         return has_changed
         
                                     
@@ -204,18 +224,7 @@ class AkariSolver:
                                 return True
         return False
     
-    def direct_solving(self)->bool:
-        """try basic techniques to solve the puzzle """
-        lastprogress = 0
-        while self.progress > lastprogress:
-            lastprogress = self.progress
-            if self.rule_only_choice():
-                self.add_progress()
-            if self.rule_restricted_hint():
-                self.add_progress()
-            if self.p.is_solved():
-                return True         
-        return False
+
     
     def double_check(self):
         # store all cells related to a hint
@@ -279,6 +288,19 @@ class AkariSolver:
                     if inconsistency == True:
                         break
     
+        return False
+    
+    def direct_solving(self)->bool:
+        """try basic techniques to solve the puzzle """
+        lastprogress = 0
+        while self.progress > lastprogress:
+            lastprogress = self.progress
+            if self.rule_only_choice():
+                self.add_progress()
+            if self.rule_restricted_hint():
+                self.add_progress()
+            if self.p.is_solved():
+                return True         
         return False
     
     def advanced_solving(self)->bool:
