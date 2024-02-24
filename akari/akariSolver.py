@@ -290,17 +290,57 @@ class AkariSolver:
     
         return False
     
-    def direct_solving(self)->bool:
-        """try basic techniques to solve the puzzle """
-        lastprogress = 0
-        while self.progress > lastprogress:
-            lastprogress = self.progress
-            if self.rule_only_choice():
-                self.add_progress()
-            if self.rule_restricted_hint():
-                self.add_progress()
-            if self.p.is_solved():
-                return True         
+    # when two hints with label 2 are adjacent, there are two possible configurations
+    #
+    #  x C x  or  x C x
+    #  C 2 x      x 2 C
+    #  x 2 C      C 2 x
+    #  x C x      x C x
+    # 
+    # this means that the top and bottom cells are candles
+    def rule_adjacents_two(self):
+        for cell in self.p.iter_cells():
+            if cell.has_hint() and cell.val == 2:
+                twos = list(cell)
+                # get all cells around the hint
+                adj = self.p.get_adjacent_cells(cell)
+
+                # look for a hint with label 2
+                for c in adj:
+                    if c.has_hint() and c.val == 2:
+                        twos.append(c)
+                # we found the pattern !
+                if len(twos) == 2:
+                    cols = []
+                    rows = []
+                    for c in twos:
+                        rows.append(c.row)
+                        cols.append(c.col)
+                    rows.sort()
+                    cols.sort()
+                    # the twos are on the same row
+                    # candles are on the left and right
+                    if len(rows) == 1:
+                        # place a candle on the left, (row, cols[0]-1)
+                        # check that the column is in the board range 
+                        if cols[0]-1 >= 0:
+                            self.p.add_candle(self.p.get_cell(rows[0], cols[0]-1))
+                        # place a candle on the left, (row, cols[1]+1)
+                        # check that the column is in the board range
+                        if cols[1]+1 < self.p.size_col:
+                            self.p.add_candle(self.p.get_cell(rows[0], cols[1]+1))
+                        return True
+                    # the twos are on the same column
+                    # candles are on the top and bottom
+                    elif len(cols) == 1:
+                        # place a candle on the top, (rows[0]-1, cols[0])
+                        # check that the row is in the board range
+                        if rows[0]-1 >= 0:
+                            self.p.add_candle(self.p.get_cell(rows[0]-1, cols[0]))
+                        # place a candle on the bottom, (rows[1]+1, cols[0])
+                        if rows[1]+1 < self.p.size_row:
+                            self.p.add_candle(self.p.get_cell(rows[1]+1, cols[0]))
+                        return True        
         return False
     
     # try solving, by using a chain. Try placing a candle, check if it triggers the placement other candles, until no other 
@@ -327,6 +367,19 @@ class AkariSolver:
         self.p = saved_puzzle                
         return True
 
+    def direct_solving(self)->bool:
+        """try basic techniques to solve the puzzle """
+        lastprogress = 0
+        while self.progress > lastprogress:
+            lastprogress = self.progress
+            if self.rule_only_choice():
+                self.add_progress()
+            if self.rule_restricted_hint():
+                self.add_progress()
+            if self.p.is_solved():
+                return True         
+        return False
+    
     def advanced_solving(self)->bool:
         lastprogress = 0
         while self.progress > lastprogress:
