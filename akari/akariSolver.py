@@ -246,7 +246,7 @@ class AkariSolver:
             # Select, 2 adjacents cells as candidates for being a candle
             # check if another hint cannot be solved with these candles
             # if not, we know that this pair of candles is not possible
-            if hint["is_solved"] == False and len(hint["candidates"]) == 3:
+            if hint["is_solved"] == False and len(hint["candidates"]) == 3 and hint["value"] >1:
                 inconsistency = False
                 for c1 in hint["candidates"]:
                     for c2 in hint["candidates"]:
